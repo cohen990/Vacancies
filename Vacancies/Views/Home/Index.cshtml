@@ -1,1 +1,42 @@
-﻿
+﻿<link rel="stylesheet" href="https://js.arcgis.com/3.15/esri/css/esri.css">
+<script src="https://js.arcgis.com/3.15/"></script>
+<script src="https://code.jquery.com/jquery-2.1.4.js"></script>
+
+<script>
+    require([
+    "esri/map",
+    "esri/layers/FeatureLayer",
+    "esri/symbols/PictureMarkerSymbol",
+    "esri/renderers/ClassBreaksRenderer",
+    "esri/Color",
+    "dojo/domReady!"
+    ],
+    function (Map, FeatureLayer, PictureMarkerSymbol, ClassBreaksRenderer, Color) {
+        var map = new Map("map", {
+            center: [-0.019647, 51.545566],
+            zoom: 17,
+            basemap: "gray"
+        });
+
+        var featureLayer = new FeatureLayer("http://services5.arcgis.com/ulYrxJGspewRy1Z8/arcgis/rest/services/Restaurants/FeatureServer/0", {outFields:["*"]});
+
+        var defaultSymbol = new PictureMarkerSymbol("http://localhost:55311/content/pin-grey.png", 50, 50);
+
+        var renderer = new ClassBreaksRenderer(defaultSymbol, function (feature) {
+            return feature.attributes.occupied_tables / feature.attributes.total_tables;
+        });
+
+        renderer.addBreak(0, 0.34, new PictureMarkerSymbol("http://localhost:55311/content/pin-green.png", 50, 50));
+        renderer.addBreak(0.34, 0.67, new PictureMarkerSymbol("http://localhost:55311/content/pin-orange.png", 50, 50));
+        renderer.addBreak(0.67, 1, new PictureMarkerSymbol("http://localhost:55311/content/pin-red.png", 50, 50));
+
+        featureLayer.setRenderer(renderer);
+
+        featureLayer.on("click", function (e) { console.log("hi"); });
+
+        map.addLayer(featureLayer);
+    });
+
+</script>
+
+<div id="map"></div>
