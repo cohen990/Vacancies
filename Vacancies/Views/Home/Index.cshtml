@@ -4,6 +4,7 @@
 
 <script>
     var availableCuisines = [];
+    var lastServiceArea;
 
     require([
     "esri/map",
@@ -24,6 +25,7 @@
     "esri/tasks/query",
     "dojo/_base/unload",
     "esri/IdentityManager",
+    "esri/config",
     "dojo/domReady!"
     ],
         function (Map,
@@ -43,9 +45,12 @@
             Point,
             Query,
             baseUnload,
-            esriId) {
+            esriId,
+            config) {
 
             doAuth();
+            esri.config.defaults.io.corsEnabledServers.push("route.arcgis.com")
+
             var featureLayer = getFeatureLayer();
 
             var map = getMap(featureLayer);
@@ -53,6 +58,7 @@
             map.on("click", function (evt) {
                 clickpoint = evt;
                 map.graphics.clear();
+                featureLayer.clearSelection();
 
                 var pointSymbol = new SimpleMarkerSymbol(
                   "diamond",
@@ -71,9 +77,10 @@
                 map.graphics.add(location);
 
                 params = new ServiceAreaParameters();
-                params.defaultBreaks = [1];
+                params.defaultBreaks = [2];
                 params.outSpatialReference = map.spatialReference;
                 params.returnFacilities = false;
+                params.travelMode = { "attributeParameterValues": [{ "parameterName": "Restriction Usage", "attributeName": "Walking", "value": "PROHIBITED" }, { "parameterName": "Restriction Usage", "attributeName": "Preferred for Pedestrians", "value": "PREFER_LOW" }, { "parameterName": "Walking Speed (km/h)", "attributeName": "WalkTime", "value": 5 }], "description": "Follows paths and roads that allow pedestrian traffic and finds solutions that optimize travel time. The walking speed is set to 5 kilometers per hour.", "impedanceAttributeName": "WalkTime", "simplificationToleranceUnits": "esriMeters", "uturnAtJunctions": "esriNFSBAllowBacktrack", "restrictionAttributeNames": ["Preferred for Pedestrians", "Walking"], "useHierarchy": false, "simplificationTolerance": 2, "timeAttributeName": "WalkTime", "distanceAttributeName": "Miles", "type": "WALK", "id": "caFAgoThrvUpkFBW", "name": "Walking Time" };
 
                 serviceAreaTask = new ServiceAreaTask("https://route.arcgis.com/arcgis/rest/services/World/ServiceAreas/NAServer/ServiceArea_World");
 
@@ -92,16 +99,18 @@
                     );
                     // Will only be one in practice.
                     arrayUtils.forEach(solveResult.serviceAreaPolygons, function (serviceArea) {
+                        lastServiceArea = serviceArea;
                         var g = serviceArea.geometry;
-                        g = GeometryEngine.buffer(g, 30);
+                        g = GeometryEngine.buffer(g, 60);
                         serviceArea.setGeometry(g);
                         serviceArea.setSymbol(polygonSymbol);
                         map.graphics.add(serviceArea);
                         updateFeatureLayerWithGeometry(featureLayer, g);
+                        map.setExtent(g.getExtent(), true);
                     });
 
                 }, function (err) {
-                    console.log(err.message);
+                    console.log("Got an errrorr: " + err.message);
                 });
             });
 
@@ -113,44 +122,31 @@
                 $("#has-space").text(graphic.occupied_tables < graphic.total_tables);
             }
 
-
-            $(document).ready(function () {
-                $("#cuisine-select").on("change", function (e) {
-                    filterCuisine($(e.currentTarget).find(":checked").text())
-                })
-            });
-
-            function filterCuisine(cuisine) {
-                if (cuisine === "All") {
-                    updateFeatureLayerWithAll(featureLayer);
-                } else {
-                    updateFeatureLayer(featureLayer, "cuisine_type = '" + cuisine + "'");
-                }
-            }
-
             function getFeatureLayer(whereQuery) {
 
 
-                var featureLayer = new FeatureLayer("http://services5.arcgis.com/ulYrxJGspewRy1Z8/arcgis/rest/services/Restaurants/FeatureServer/0",
+                var featureLayer = new FeatureLayer("http://services5.arcgis.com/ulYrxJGspewRy1Z8/arcgis/rest/services/restaurants2/FeatureServer/0",
                     {
                         outFields: ["*"],
                         mode: FeatureLayer.MODE_SELECTION
                     });
 
                 featureLayer.on("load", function (e) {
+                    var size = 15;
                     updateFeatureLayerWithAll(featureLayer);
-                    var defaultSymbol = new PictureMarkerSymbol("http://localhost:55311/content/pin-grey.png", 50, 50);
+                    var defaultSymbol = new PictureMarkerSymbol("http://localhost:55311/content/pin-green2.png", size, size);
 
                     var renderer = new ClassBreaksRenderer(defaultSymbol, "congestion");
 
-                    renderer.addBreak(0, 0.34, new PictureMarkerSymbol("http://localhost:55311/content/pin-green.png", 50, 50));
-                    renderer.addBreak(0.34, 0.67, new PictureMarkerSymbol("http://localhost:55311/content/pin-orange.png", 50, 50));
-                    renderer.addBreak(0.67, 1, new PictureMarkerSymbol("http://localhost:55311/content/pin-red.png", 50, 50));
+                    renderer.addBreak(0, 0.34, new PictureMarkerSymbol("http://localhost:55311/content/pin-green2.png", size, size));
+                    renderer.addBreak(0.34, 0.67, new PictureMarkerSymbol("http://localhost:55311/content/pin-orange2.png", size, size));
+                    renderer.addBreak(0.67, 1, new PictureMarkerSymbol("http://localhost:55311/content/pin-red2.png", size, size));
 
                     featureLayer.setRenderer(renderer);
 
                     featureLayer.on("click", function (e) {
                         putInfo(e.graphic.attributes);
+                        e.stopPropagation()
                     });
                 });
 
@@ -159,7 +155,7 @@
 
             function getMap(featureLayer) {
                 var map = new Map("map", {
-                    center: [-0.019647, 51.545566],
+                    center: [-0.130322, 51.510416],
                     zoom: 17,
                     basemap: "gray"
                 });
@@ -171,18 +167,24 @@
             function updateFeatureLayerWithAll(featureLayer) {
                 var query = new Query();
                 query.where = "1=1";
-                featureLayer.selectFeatures(query);
+                if (lastServiceArea) {
+                    query.geometry = lastServiceArea.geometry;
+                }
+                featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
             }
 
             function updateFeatureLayer(featureLayer, whereQuery) {
                 var query = new Query();
                 query.where = whereQuery;
+                if (lastServiceArea) {
+                    query.geometry = lastServiceArea.geometry;
+                }
                 featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
             }
 
             function updateFeatureLayerWithGeometry(featureLayer, geometry) {
                 var query = new Query();
-                query.where = "1=1";
+                query.where = getWhere();
                 query.geometry = geometry;
                 featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
             }
@@ -245,8 +247,73 @@
                     }
                 }
 
+
+                $(document).ready(function () {
+                    $("#cuisine-select").on("change", function (e) {
+                        var checked = $($(e.currentTarget)).find(":checked");
+                        var values = [];
+                        checked.each(function (index, el) {
+                            values.push(el.value);
+                        });
+                        filterCuisine(values)
+                    })
+                });
+
+                function filterCuisine(cuisines) {
+                    if (cuisines.indexOf("All") > -1) {
+                        updateFeatureLayerWithAll(featureLayer);
+                    } else {
+                        var where = getWhereForCuisines(cuisines);
+                        updateFeatureLayer(featureLayer, where);
+                    }
+                }
+
             }
         });
+
+    function toggle(source) {
+        checkboxes = document.getElementsByName(source.name);
+        for (var i = 0, n = checkboxes.length; i < n; i++) {
+            checkboxes[i].checked = source.checked;
+        }
+    }
+
+    function toggleAll(source) {
+        if (!source.checked) {
+            $('#cuisine-type-all').attr('checked', false);
+        }
+    }
+
+    function getWhere() {
+        var vals = getCheckedValues($("#cuisine-select"));
+        if (vals.indexOf("All") > -1) {
+            return "1=1";
+        }
+        var where = getWhereForCuisines(vals);
+        return where;
+    }
+
+    function getWhereForCuisines(cuisines) {
+        var where = "1=2";
+        for (var i = 0; i < cuisines.length; i++) {
+            if (i > 0) {
+                where += " or ";
+            } else {
+                where = "";
+            }
+            where += "cuisine_type = '" + cuisines[i] + "'";
+        }
+        return where;
+    }
+
+    function getCheckedValues(target) {
+        var checked = target.find(":checked");
+        var values = [];
+        checked.each(function (index, el) {
+            values.push(el.value);
+        });
+        return values;
+    }
 
 </script>
 
@@ -255,11 +322,11 @@
         <li>
             Cuisine
             <div id="cuisine-select">
-                <input type="checkbox" name="cuisine-type" value="*">All</option>
-                <input type="checkbox" name="cuisine-type" value="Chinese">Chinese</option>
-                <input type="checkbox" name="cuisine-type" value="Indian">Indian</option>
-                <input type="checkbox" name="cuisine-type" value="Vietnamese">Vietnamese</option>
-                <input type="checkbox" name="cuisine-type" value="Greek">Greek</option>
+                <input id="cuisine-type-all" type="checkbox" checked="checked" name="cuisine-type" value="All" onClick="toggle(this)">All
+                <input type="checkbox" checked="checked" name="cuisine-type" onClick="toggleAll(this)" value="Chinese">Chinese
+                <input type="checkbox" checked="checked" name="cuisine-type" onClick="toggleAll(this)" value="Indian">Indian
+                <input type="checkbox" checked="checked" name="cuisine-type" onClick="toggleAll(this)" value="Vietnamese">Vietnamese
+                <input type="checkbox" checked="checked" name="cuisine-type" onClick="toggleAll(this)" value="Greek">Greek
             </div>
         </li>
     </ul>

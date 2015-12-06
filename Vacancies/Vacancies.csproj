@@ -127,7 +127,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Content\pin.png" />
+    <Content Include="Content\me.jpg" />
+    <Content Include="Content\pin-green.jpg" />
+    <Content Include="Content\pin-orange.jpg" />
+    <Content Include="Content\pin-red.jpg" />
+    <Content Include="Content\point.jpg" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Web.config" />
