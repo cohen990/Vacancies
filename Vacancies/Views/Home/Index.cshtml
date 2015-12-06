@@ -3,40 +3,274 @@
 <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
 
 <script>
+    var availableCuisines = [];
+
     require([
     "esri/map",
     "esri/layers/FeatureLayer",
+    "esri/tasks/ServiceAreaTask",
+    "esri/tasks/ServiceAreaParameters",
+    "esri/tasks/FeatureSet",
+    "esri/geometry/geometryEngine",
     "esri/symbols/PictureMarkerSymbol",
+    "esri/symbols/SimpleMarkerSymbol",
+    "esri/symbols/SimpleLineSymbol",
+    "esri/symbols/SimpleFillSymbol",
     "esri/renderers/ClassBreaksRenderer",
     "esri/Color",
+    "dojo/_base/array",
+    "esri/graphic",
+    "esri/geometry/Point",
+    "esri/tasks/query",
+    "dojo/_base/unload",
+    "esri/IdentityManager",
     "dojo/domReady!"
     ],
-    function (Map, FeatureLayer, PictureMarkerSymbol, ClassBreaksRenderer, Color) {
-        var map = new Map("map", {
-            center: [-0.019647, 51.545566],
-            zoom: 17,
-            basemap: "gray"
+        function (Map,
+            FeatureLayer,
+            ServiceAreaTask,
+            ServiceAreaParameters,
+            FeatureSet,
+            GeometryEngine,
+            PictureMarkerSymbol,
+            SimpleMarkerSymbol,
+            SimpleLineSymbol,
+            SimpleFillSymbol,
+            ClassBreaksRenderer,
+            Color,
+            arrayUtils,
+            Graphic,
+            Point,
+            Query,
+            baseUnload,
+            esriId) {
+
+            doAuth();
+            var featureLayer = getFeatureLayer();
+
+            var map = getMap(featureLayer);
+
+            map.on("click", function (evt) {
+                clickpoint = evt;
+                map.graphics.clear();
+
+                var pointSymbol = new SimpleMarkerSymbol(
+                  "diamond",
+                  20,
+                  new SimpleLineSymbol(
+                    "solid",
+                    new Color([88, 116, 152]), 2
+                  ),
+                  new Color([88, 116, 152, 0.45])
+                );
+
+                var inPoint = new Point(evt.mapPoint.x, evt.mapPoint.y, map.spatialReference);
+                var location = new Graphic(inPoint, pointSymbol);
+
+                // Show point on the map
+                map.graphics.add(location);
+
+                params = new ServiceAreaParameters();
+                params.defaultBreaks = [1];
+                params.outSpatialReference = map.spatialReference;
+                params.returnFacilities = false;
+
+                serviceAreaTask = new ServiceAreaTask("https://route.arcgis.com/arcgis/rest/services/World/ServiceAreas/NAServer/ServiceArea_World");
+
+                var features = [location];
+                var facilities = new FeatureSet();
+                facilities.features = features;
+                params.facilities = facilities;
+
+                serviceAreaTask.solve(params, function (solveResult) {
+                    // 6: You get a polygon back. Draw it on a map, but you could use it as the
+                    //    geometry of a Query object.
+                    var polygonSymbol = new SimpleFillSymbol(
+                      "solid",
+                      new SimpleLineSymbol("solid", new Color([232, 104, 80, 0.25]), 2),
+                      new Color([232, 104, 80, 0.05])
+                    );
+                    // Will only be one in practice.
+                    arrayUtils.forEach(solveResult.serviceAreaPolygons, function (serviceArea) {
+                        var g = serviceArea.geometry;
+                        g = GeometryEngine.buffer(g, 30);
+                        serviceArea.setGeometry(g);
+                        serviceArea.setSymbol(polygonSymbol);
+                        map.graphics.add(serviceArea);
+                        updateFeatureLayerWithGeometry(featureLayer, g);
+                    });
+
+                }, function (err) {
+                    console.log(err.message);
+                });
+            });
+
+            function putInfo(graphic) {
+                $("#name").text(graphic.name);
+                $("#cuisine").text(graphic.cuisine_type);
+                $("#occupied-tables").text(graphic.occupied_tables);
+                $("#total-tables").text(graphic.total_tables);
+                $("#has-space").text(graphic.occupied_tables < graphic.total_tables);
+            }
+
+
+            $(document).ready(function () {
+                $("#cuisine-select").on("change", function (e) {
+                    filterCuisine($(e.currentTarget).find(":checked").text())
+                })
+            });
+
+            function filterCuisine(cuisine) {
+                if (cuisine === "All") {
+                    updateFeatureLayerWithAll(featureLayer);
+                } else {
+                    updateFeatureLayer(featureLayer, "cuisine_type = '" + cuisine + "'");
+                }
+            }
+
+            function getFeatureLayer(whereQuery) {
+
+
+                var featureLayer = new FeatureLayer("http://services5.arcgis.com/ulYrxJGspewRy1Z8/arcgis/rest/services/Restaurants/FeatureServer/0",
+                    {
+                        outFields: ["*"],
+                        mode: FeatureLayer.MODE_SELECTION
+                    });
+
+                featureLayer.on("load", function (e) {
+                    updateFeatureLayerWithAll(featureLayer);
+                    var defaultSymbol = new PictureMarkerSymbol("http://localhost:55311/content/pin-grey.png", 50, 50);
+
+                    var renderer = new ClassBreaksRenderer(defaultSymbol, "congestion");
+
+                    renderer.addBreak(0, 0.34, new PictureMarkerSymbol("http://localhost:55311/content/pin-green.png", 50, 50));
+                    renderer.addBreak(0.34, 0.67, new PictureMarkerSymbol("http://localhost:55311/content/pin-orange.png", 50, 50));
+                    renderer.addBreak(0.67, 1, new PictureMarkerSymbol("http://localhost:55311/content/pin-red.png", 50, 50));
+
+                    featureLayer.setRenderer(renderer);
+
+                    featureLayer.on("click", function (e) {
+                        putInfo(e.graphic.attributes);
+                    });
+                });
+
+                return featureLayer;
+            }
+
+            function getMap(featureLayer) {
+                var map = new Map("map", {
+                    center: [-0.019647, 51.545566],
+                    zoom: 17,
+                    basemap: "gray"
+                });
+
+                map.addLayer(featureLayer);
+                return map;
+            }
+
+            function updateFeatureLayerWithAll(featureLayer) {
+                var query = new Query();
+                query.where = "1=1";
+                featureLayer.selectFeatures(query);
+            }
+
+            function updateFeatureLayer(featureLayer, whereQuery) {
+                var query = new Query();
+                query.where = whereQuery;
+                featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
+            }
+
+            function updateFeatureLayerWithGeometry(featureLayer, geometry) {
+                var query = new Query();
+                query.where = "1=1";
+                query.geometry = geometry;
+                featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
+            }
+
+            function doAuth() {
+                var cred = "esri_jsapi_id_manager_data";
+                // store credentials/serverInfos before the page unloads
+                baseUnload.addOnUnload(storeCredentials);
+
+                // look for credentials in local storage
+                loadCredentials();
+
+                function loadCredentials() {
+                    var idJson, idObject;
+
+                    if (supports_local_storage()) {
+                        // read from local storage
+                        idJson = window.localStorage.getItem(cred);
+                    }
+                    else {
+                        // read from a cookie
+                        idJson = cookie(cred);
+                    }
+
+                    if (idJson && idJson != "null" && idJson.length > 4) {
+                        idObject = JSON.parse(idJson);
+                        esriId.initialize(idObject);
+                    }
+                    else {
+                        // console.log("didn't find anything to load :(");
+                    }
+                }
+
+                function storeCredentials() {
+                    // make sure there are some credentials to persist
+                    if (esriId.credentials.length === 0) {
+                        return;
+                    }
+
+                    // serialize the ID manager state to a string
+                    var idString = JSON.stringify(esriId.toJson());
+                    // store it client side
+                    if (supports_local_storage()) {
+                        // use local storage
+                        window.localStorage.setItem(cred, idString);
+                        // console.log("wrote to local storage");
+                    }
+                    else {
+                        // use a cookie
+                        cookie(cred, idString, { expires: 1 });
+                        // console.log("wrote a cookie :-/");
+                    }
+                }
+
+                function supports_local_storage() {
+                    try {
+                        return "localStorage" in window && window["localStorage"] !== null;
+                    } catch (e) {
+                        return false;
+                    }
+                }
+
+            }
         });
-
-        var featureLayer = new FeatureLayer("http://services5.arcgis.com/ulYrxJGspewRy1Z8/arcgis/rest/services/Restaurants/FeatureServer/0", {outFields:["*"]});
-
-        var defaultSymbol = new PictureMarkerSymbol("http://localhost:55311/content/pin-grey.png", 50, 50);
-
-        var renderer = new ClassBreaksRenderer(defaultSymbol, function (feature) {
-            return feature.attributes.occupied_tables / feature.attributes.total_tables;
-        });
-
-        renderer.addBreak(0, 0.34, new PictureMarkerSymbol("http://localhost:55311/content/pin-green.png", 50, 50));
-        renderer.addBreak(0.34, 0.67, new PictureMarkerSymbol("http://localhost:55311/content/pin-orange.png", 50, 50));
-        renderer.addBreak(0.67, 1, new PictureMarkerSymbol("http://localhost:55311/content/pin-red.png", 50, 50));
-
-        featureLayer.setRenderer(renderer);
-
-        featureLayer.on("click", function (e) { console.log("hi"); });
-
-        map.addLayer(featureLayer);
-    });
 
 </script>
 
+<form id="filters">
+    <ul>
+        <li>
+            Cuisine
+            <div id="cuisine-select">
+                <input type="checkbox" name="cuisine-type" value="*">All</option>
+                <input type="checkbox" name="cuisine-type" value="Chinese">Chinese</option>
+                <input type="checkbox" name="cuisine-type" value="Indian">Indian</option>
+                <input type="checkbox" name="cuisine-type" value="Vietnamese">Vietnamese</option>
+                <input type="checkbox" name="cuisine-type" value="Greek">Greek</option>
+            </div>
+        </li>
+    </ul>
+</form>
 <div id="map"></div>
+<div id="info">
+    <h2 id="name"></h2>
+    <ul>
+        <li id="cuisine"></li>
+        <li id="occupied-tables"></li>
+        <li id="total-tables"></li>
+        <li id="has-space"></li>
+    </ul>
+</div>
