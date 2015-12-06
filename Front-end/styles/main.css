@@ -1,0 +1,199 @@
+/* {
+	border: 3px solid black !important;
+} */
+
+html {
+	background-color: #EBECEE;
+}
+
+body {
+	background-color: #EBECEE;
+	height: 900px;
+}
+
+.navbar {
+	height: 13%;
+	background-color: #fd972b;
+	text-align: center;
+}
+
+#logo {
+	max-width: 90%;
+	max-height: 90%;
+	vertical-align: baseline;
+}
+
+.heading {
+	text-align: center;
+}
+
+#title {
+	display: inline-block;
+	width: 480px;
+
+}
+
+#name, #tagline {
+	display: block;
+}
+
+#name {
+	font-size: 55px;
+}
+
+#tagline {
+	font-size: 17px;
+}
+
+#main-body {
+	position: absolute;
+	top: 125px;
+	width: 1430px;
+	text-align: right;
+}
+
+#live {
+	color: red;
+	text-align: center;
+	margin: auto;
+	width: 80px;
+	position: fixed;
+	left: 727px;
+}
+
+#red, #yellow, #green {
+	max-width: 90%;
+	max-height: 90%;
+	height: 20px;
+	right: 0px;
+	margin-left: auto;
+	display:inline-block;
+}
+
+#comment1 {
+	width: 150px;
+	margin-left: auto;
+	display:inline-block;
+}
+
+#comment2 {
+	width: 120px;
+	margin-left: auto;
+	display:inline-block;
+}
+
+#filter {
+	height: 685px;
+	width: 300px;
+	background-color: white;
+	position: fixed;
+	top: 176px;
+	left: 50px;
+	border: 3px solid black !important;
+}
+
+#map {
+	height: 685px;
+	width: 746px;
+	background-color: white;
+	position: fixed;
+	top: 176px;
+	left: 348px;
+	border: 3px solid black !important;
+}
+
+#info {
+	height: 685px;
+	width: 300px;
+	background-color: white;
+	position: fixed;
+	top: 176px;
+	left: 1091px;
+	border: 3px solid black !important;
+}
+
+#cuisine {
+	position: absolute;
+	left: 15px;
+	top: 10px;
+	margin: 0px;
+	font-size: 22px;
+}
+
+#check1 {
+	position: absolute;
+	left: 24px;
+	top: 40px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#indian {
+	margin-left: 50px;
+	margin-top: 39px;
+}
+
+#check2 {
+	position: absolute;
+	left: 140px;
+	top: 40px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#asian {
+	margin-left: 164px;
+	margin-top: -24px
+}
+
+#check3 {
+	position: absolute;
+	left: 24px;
+	top: 40px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#chinese {
+	margin-left: 50px;
+	margin-top: 10px
+}
+
+#check4 {
+	position: absolute;
+	left: 140px;
+	top: 75px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#english {
+	margin-left: 164px;
+	margin-top: -24px
+}
+
+#check5 {
+	position: absolute;
+	left: 24px;
+	top: 40px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#italian {
+	margin-left: 50px;
+	margin-top: 10px
+}
+
+#check6 {
+	position: absolute;
+	left: 140px;
+	top: 40px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#pizza {
+	margin-left: 164px;
+	margin-top: -26px
+}
