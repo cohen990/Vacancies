@@ -60,15 +60,8 @@
                 map.graphics.clear();
                 featureLayer.clearSelection();
 
-                var pointSymbol = new SimpleMarkerSymbol(
-                  "diamond",
-                  20,
-                  new SimpleLineSymbol(
-                    "solid",
-                    new Color([88, 116, 152]), 2
-                  ),
-                  new Color([88, 116, 152, 0.45])
-                );
+                var pointSymbol = new PictureMarkerSymbol("http://localhost:55311/content/point.png", 20, 30);
+
 
                 var inPoint = new Point(evt.mapPoint.x, evt.mapPoint.y, map.spatialReference);
                 var location = new Graphic(inPoint, pointSymbol);
@@ -132,7 +125,7 @@
                     });
 
                 featureLayer.on("load", function (e) {
-                    var size = 15;
+                    var size = 20;
                     updateFeatureLayerWithAll(featureLayer);
                     var defaultSymbol = new PictureMarkerSymbol("http://localhost:55311/content/pin-green2.png", size, size);
 
@@ -266,6 +259,12 @@
                         var where = getWhereForCuisines(cuisines);
                         updateFeatureLayer(featureLayer, where);
                     }
+                }
+
+                function updateThatOneThing() {
+                    var num = $.ajax("http://localhost:55311/api/endpoint/index");
+
+                    console.log("I GOT THE NUMBER: " + num);
                 }
 
             }

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacancies</title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.4.js"></script>
+</head>
+<body>
+<div class="button-container left">
+    <div class="button occupied"></div>
+	<div class="button"></div>
+</div>
+<div class="button-container right">
+    <div class="button"></div>
+	<div class="button"></div>
+</div>
+    <style>
+    	body{
+    		background-color:black;
+    	}
+    	.button{
+    		width:200px;
+			height:200px;
+			border-radius:50%;
+			background-color:#009900;
+			border: 20px solid #006600;
+			margin:10px 10px;
+			display:inline-block;
+    	}
+    	.button-container{
+    		margin:0;
+    		display:inline;
+    	}
+    	.occupied{
+    		background-color:#999999;
+    		border-color:#666666;
+    	}
+    </style>
+    <script type="text/javascript">
+    	$(".button").click(function(evt){
+    		var t = evt.currentTarget;
+
+    		if($(t).hasClass("occupied")){
+    			$(t).removeClass("occupied");
+    			$.ajax({url: "http://localhost:55311/api/endpoint/set?num=" + $(".occupied").length.toString(),
+				    crossDomain: true,
+				    dataType: 'jsonp'
+			    })
+    		}
+    		else{
+    			$(t).addClass("occupied");
+    			$.ajax({url: "http://localhost:55311/api/endpoint/set?num=" + $(".occupied").length.toString(),
+				    crossDomain: true,
+				    dataType: 'jsonp'
+			    })
+    		}
+    	});
+    </script>
+</body>
+</html>
