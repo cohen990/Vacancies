@@ -108,17 +108,23 @@
             });
 
             function putInfo(graphic) {
-                $("#name").text(graphic.name);
-                $("#cuisine").text(graphic.cuisine_type);
-                $("#occupied-tables").text(graphic.occupied_tables);
-                $("#total-tables").text(graphic.total_tables);
-                $("#has-space").text(graphic.occupied_tables < graphic.total_tables);
+                $("#restaurant-name").text(graphic.name);
+                $("#info-cuisine").text("Cuisine: " + graphic.cuisine_type);
+                $("#info-rating").text(graphic.rating + " Stars");
+                var environment = "Busy";
+                if (graphic.congestion < 0.34) {
+                    environment = "Empty";
+                } else if (graphic.congestion < 0.67) {
+                    environment = "Cosy";
+                }
+                $("#info-environment").text(environment);
+                console.log(graphic);
             }
 
             function getFeatureLayer(whereQuery) {
 
 
-                var featureLayer = new FeatureLayer("http://services5.arcgis.com/ulYrxJGspewRy1Z8/arcgis/rest/services/restaurants2/FeatureServer/0",
+                var featureLayer = new FeatureLayer("http://services5.arcgis.com/ulYrxJGspewRy1Z8/arcgis/rest/services/restaurants3/FeatureServer/0",
                     {
                         outFields: ["*"],
                         mode: FeatureLayer.MODE_SELECTION
@@ -141,6 +147,8 @@
                         putInfo(e.graphic.attributes);
                         e.stopPropagation()
                     });
+
+                    setTimeout(randomUpdate(), 10)
                 });
 
                 return featureLayer;
@@ -180,6 +188,27 @@
                 query.where = getWhere();
                 query.geometry = geometry;
                 featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
+            }
+
+            function randomUpdate() {
+                var query = new Query();
+                query.where = "FID=960";
+                var rand1 = getRandomInt(0, 50);
+                if (rand1 < 5 && featureLayer.graphics.length > 0) {
+                    var n = getRandomInt(0, featureLayer.graphics.length -1);
+                    var rand = getRandomInt(0, 2);
+                    if(rand == 0){
+                        featureLayer.graphics[n].setSymbol(new PictureMarkerSymbol("http://localhost:55311/content/pin-green2.png", 25, 25))
+                    }
+                    if(rand == 1){
+                        featureLayer.graphics[n].setSymbol(new PictureMarkerSymbol("http://localhost:55311/content/pin-orange2.png", 25, 25))
+                    }
+                    else{
+                        featureLayer.graphics[n].setSymbol(new PictureMarkerSymbol("http://localhost:55311/content/pin-red2.png", 25, 25))
+                    }
+                }
+
+                setTimeout(randomUpdate, 10);
             }
 
             function doAuth() {
@@ -242,23 +271,14 @@
 
 
                 $(document).ready(function () {
-                    $("#cuisine-select").on("change", function (e) {
-                        var checked = $($(e.currentTarget)).find(":checked");
-                        var values = [];
-                        checked.each(function (index, el) {
-                            values.push(el.value);
-                        });
-                        filterCuisine(values)
+                    $("#filter-cuisine").on("change", function (e) {
+                        filterCuisine()
                     })
                 });
 
-                function filterCuisine(cuisines) {
-                    if (cuisines.indexOf("All") > -1) {
-                        updateFeatureLayerWithAll(featureLayer);
-                    } else {
-                        var where = getWhereForCuisines(cuisines);
-                        updateFeatureLayer(featureLayer, where);
-                    }
+                function filterCuisine() {
+                    var where = getWhere();
+                    updateFeatureLayer(featureLayer, where);
                 }
 
                 function updateThatOneThing() {
@@ -266,7 +286,6 @@
 
                     console.log("I GOT THE NUMBER: " + num);
                 }
-
             }
         });
 
@@ -284,8 +303,8 @@
     }
 
     function getWhere() {
-        var vals = getCheckedValues($("#cuisine-select"));
-        if (vals.indexOf("All") > -1) {
+        var vals = getCheckedValues($("#filter-cuisine"));
+        if (vals.length >= 6) {
             return "1=1";
         }
         var where = getWhereForCuisines(vals);
@@ -314,29 +333,75 @@
         return values;
     }
 
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
 </script>
 
-<form id="filters">
-    <ul>
-        <li>
-            Cuisine
-            <div id="cuisine-select">
-                <input id="cuisine-type-all" type="checkbox" checked="checked" name="cuisine-type" value="All" onClick="toggle(this)">All
-                <input type="checkbox" checked="checked" name="cuisine-type" onClick="toggleAll(this)" value="Chinese">Chinese
-                <input type="checkbox" checked="checked" name="cuisine-type" onClick="toggleAll(this)" value="Indian">Indian
-                <input type="checkbox" checked="checked" name="cuisine-type" onClick="toggleAll(this)" value="Vietnamese">Vietnamese
-                <input type="checkbox" checked="checked" name="cuisine-type" onClick="toggleAll(this)" value="Greek">Greek
-            </div>
-        </li>
-    </ul>
-</form>
-<div id="map"></div>
-<div id="info">
-    <h2 id="name"></h2>
-    <ul>
-        <li id="cuisine"></li>
-        <li id="occupied-tables"></li>
-        <li id="total-tables"></li>
-        <li id="has-space"></li>
-    </ul>
+<h3 id="live">LIVE</h3>
+<h5 id="comment1">Better luck next time!</h5>
+<img id="red" src="images/RedDots.png">
+<img id="yellow" src="images/YellowDots.png">
+<img id="green" src="images/GreenDots.png">
+<h5 id="comment2">Spaces available</h5>
+
+
+<div id="filter-cuisine">
+    <h3 id="cuisine">Cuisine:</h3>
+    <div id="indian">
+        <label><input id="check1" type="checkbox" value="indian" checked="checked">Indian</label>
+    </div>
+    <div id="asian">
+        <label><input id="check2" type="checkbox" value="asian" checked="checked">Asian</label>
+    </div>
+    <div id="chinese">
+        <label><input id="check3" type="checkbox" value="chinese" checked="checked">Chinese</label>
+    </div>
+    <div id="english">
+        <label><input id="check4" type="checkbox" value="english" checked="checked">English</label>
+    </div>
+    <div id="italian">
+        <label><input id="check5" type="checkbox" value="italian" checked="checked">Italian</label>
+    </div>
+    <div id="pizza">
+        <label><input id="check6" type="checkbox" value="pizza" checked="checked">Pizza</label>
+    </div>
+</div>
+
+<div id="filter-rating">
+    <h3 id="rating">Rating:</h3>
+    <select id="drop-down">
+        <option value="All">All</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+    </select>
+</div>
+
+<div id="filter-environment">
+    <h3 id="environment">Environment:</h3>
+    <div id="empty">
+        <label><input id="check7" type="checkbox" value="">Empty</label>
+    </div>
+    <div id="cozy">
+        <label><input id="check8" type="checkbox" value="">Cozy</label>
+    </div>
+    <div id="busy">
+        <label><input id="check9" type="checkbox" value="">Busy</label>
+    </div>
+</div>
+
+<div id="map">
+</div>
+
+<div id="info-head">
+    <h3 id="restaurant-name"></h3>
+</div>
+<div id="info-details">
+    <h4 id="info-cuisine"></h4>
+    <h4 id="info-rating"></h4>
+    <h4 id="info-environment"></h4>
 </div>

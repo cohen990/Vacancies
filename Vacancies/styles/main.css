@@ -1,0 +1,305 @@
+/* {
+	border: 3px solid black !important;
+} */
+
+html {
+	background-color: #EBECEE;
+}
+
+body {
+	background-color: #EBECEE;
+	height: 900px;
+}
+
+.navbar {
+	height: 120px;
+	background-color: #fd972b;
+	text-align: center;
+	margin-bottom:0px;
+}
+
+#logo {
+	max-width: 90%;
+	max-height: 90%;
+	vertical-align: baseline;
+}
+
+.heading {
+	text-align: center;
+}
+
+#title {
+	display: inline-block;
+	width: 480px;
+
+}
+
+#name, #tagline {
+	display: block;
+}
+
+#name {
+	font-size: 55px;
+}
+
+#tagline {
+	font-size: 17px;
+}
+
+#main-body {
+	position: absolute;
+	top: 125px;
+	width: 1430px;
+	text-align: right;
+}
+
+#live {
+	color: red;
+	text-align: center;
+	margin: auto;
+	width: 80px;
+	position: fixed;
+	left: 727px;
+}
+
+#red, #yellow, #green {
+	max-width: 90%;
+	max-height: 90%;
+	height: 20px;
+	right: 0px;
+	margin-left: auto;
+	display:inline-block;
+}
+
+#comment1 {
+	width: 150px;
+	margin-left: auto;
+	display:inline-block;
+}
+
+#comment2 {
+	width: 120px;
+	margin-left: auto;
+	display:inline-block;
+}
+
+#filter-cuisine {
+	height: 150px;
+	width: 300px;
+	background-color: white;
+	position: fixed;
+	top: 140px;
+	left: 50px;
+	border: 3px solid black !important;
+}
+
+#cuisine {
+	position: absolute;
+	left: 15px;
+	top: 10px;
+	margin: 0px;
+	font-size: 22px;
+}
+
+#check1 {
+	position: absolute;
+	left: 40px;
+	top: 40px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#indian {
+	margin-left: 50px;
+	margin-top: 39px;
+}
+
+#check2 {
+	position: absolute;
+	left: 150px;
+	top: 40px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#asian {
+	margin-left: 164px;
+	margin-top: -24px
+}
+
+#check3 {
+	position: absolute;
+	left: 40px;
+	top: 76px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#chinese {
+	margin-left: 50px;
+	margin-top: 10px
+}
+
+#check4 {
+	position: absolute;
+	left: 150px;
+	top: 75px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#english {
+	margin-left: 164px;
+	margin-top: -24px
+}
+
+#check5 {
+	position: absolute;
+	left: 40px;
+	top: 109px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#italian {
+	margin-left: 50px;
+	margin-top: 10px
+}
+
+#check6 {
+	position: absolute;
+	left: 150px;
+	top: 109px;
+	font-size: 18px;
+	width: 150px;
+}
+
+#pizza {
+	margin-left: 164px;
+	margin-top: -26px
+}
+
+#filter-rating {
+	height: 56px;
+	width: 300px;
+	background-color: white;
+	position: fixed;
+	top: 285px;
+	left: 50px;
+	border: 3px solid black !important;
+}
+
+#rating {
+	position: absolute;
+	left: 15px;
+	top: 10px;
+	margin: 0px;
+	font-size: 22px;
+}
+
+#drop-down {
+	position: absolute;
+	left: 162px;
+	top: 14px;
+}
+
+#filter-environment {
+	height: 150px;
+	width: 300px;
+	background-color: white;
+	position: fixed;
+	top: 331px;
+	left: 50px;
+	border: 3px solid black !important;
+}
+
+#environment {
+	position: absolute;
+	left: 15px;
+	top: 10px;
+	margin: 0px;
+	font-size: 22px;
+}
+
+#check7 {
+	position: fixed;
+	left: 76px;
+	top: 373px;
+}
+
+#empty {
+	position: fixed;
+	left: 99px;
+	margin-top: 41px
+
+}
+
+#check8 {
+	position: fixed;
+	left: 76px;
+	top: 403px;
+
+}
+
+#cozy {
+	position: fixed;
+	left: 99px;
+	margin-top: 70px
+
+}
+
+#check9 {
+	position: fixed;
+	left: 76px;
+	top: 432px;
+
+}
+
+#busy {
+	position: fixed;
+	left: 99px;
+	margin-top: 100px
+
+}
+
+#map {
+	height: 550px;
+	width: 746px;
+	background-color: white;
+	position: fixed;
+	top: 140px;
+	left: 348px;
+	border: 3px solid black !important;
+}
+
+#info-head {
+	height: 56px;
+	width: 300px;
+	background-color: white;
+	position: fixed;
+	top: 140px;
+	left: 1092px;
+	border: 3px solid black !important;
+}
+
+#restaurant-name {
+	position: absolute;
+	left: 15px;
+	top: 10px;
+	margin: 0px;
+	text-align: center;
+}
+
+#info-details {
+	width: 300px;
+	height:105px;
+	background-color: white;
+	position: fixed;
+	top: 190px;
+	left: 1092px;
+	border: 3px solid black !important;
+}
+
+#info-cuisine, #info-rating, #info-environment {
+	margin-left: 25px;
+}
